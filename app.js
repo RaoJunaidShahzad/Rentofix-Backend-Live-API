@@ -28,7 +28,12 @@ const app = express();
 // Enable CORS
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://192.168.100.59:3000'], // Or wherever your frontend runs
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://192.168.100.59:3000',
+    ], // Or wherever your frontend runs
     credentials: true, // ✅ Required for cookies
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   })

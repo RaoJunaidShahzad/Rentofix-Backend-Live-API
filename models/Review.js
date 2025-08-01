@@ -47,7 +47,7 @@ reviewSchema.index({ bookingId: 1, tenantId: 1 }, { unique: true });
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'tenantId',
-    select: 'firstName lastName profilePicture',
+    select: 'firstName lastName photo',
   });
   next();
 });

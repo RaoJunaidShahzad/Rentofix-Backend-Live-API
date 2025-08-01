@@ -43,8 +43,9 @@ exports.createReview = catchAsync(async (req, res, next) => {
   req.body.tenantId = tenantId;
   req.body.bookingId = booking._id;
 
+  console.log(req.body);
   const newReview = await Review.create(req.body);
-
+  console.log(newReview);
   res.status(201).json({
     status: 'success',
     data: {

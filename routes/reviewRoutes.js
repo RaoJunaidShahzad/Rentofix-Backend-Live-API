@@ -14,10 +14,14 @@ router.get('/property/:propertyId', reviewController.getReviewsByProperty);
 // Private (tenant only) - create, update, delete
 router.post('/', authController.restrictTo('tenant'), reviewController.createReview);
 
+router.route('/:id').get(reviewController.getReview);
+
 router
-  .route('/:id')
-  .get(reviewController.getReview)
-  .patch(authController.restrictTo('tenant'), reviewController.updateReview)
-  .delete(authController.restrictTo('tenant'), reviewController.deleteReview);
+  .route('/updateReview/:id')
+  .patch(authController.restrictTo('tenant', 'admin'), reviewController.updateReview);
+
+router
+  .route('/deleteReview/:id')
+  .delete(authController.restrictTo('tenant', 'admin'), reviewController.deleteReview);
 
 module.exports = router;
