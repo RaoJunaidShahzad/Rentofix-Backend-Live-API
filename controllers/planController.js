@@ -8,7 +8,7 @@ exports.deletePlanById = factory.deleteOne(Plan);
 exports.createPlan = factory.createOne(Plan);
 
 exports.getAllPlans = catchAsync(async (req, res) => {
-  const plans = await Plan.find({ isActive: true });
+  const plans = await Plan.find();
 
   res.status(200).json({
     status: 'success',
@@ -18,6 +18,18 @@ exports.getAllPlans = catchAsync(async (req, res) => {
     },
   });
 });
+
+// exports.getAllPlans = catchAsync(async (req, res) => {
+//   const plans = await Plan.find({ isActive: true });
+
+//   res.status(200).json({
+//     status: 'success',
+//     results: plans.length,
+//     data: {
+//       plans,
+//     },
+//   });
+// });
 
 const Payment = require('../models/Payment');
 

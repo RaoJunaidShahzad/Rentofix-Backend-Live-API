@@ -80,20 +80,28 @@ exports.getOne = (Model, populateOptions) =>
 
 // exports.getAll = (Model) =>
 //   catchAsync(async (req, res, next) => {
-//     // To allow for nested GET reviews on a property, for example
 //     let filter = {};
+
+//     // Nested route support (like reviews on a specific property)
 //     if (req.params.propertyId) filter = { propertyId: req.params.propertyId };
 
-//     const features = new APIFeatures(Model.find(filter), req.query)
+//     // ✅ Apply verified filter for tenants
+//     if (req.user?.role === 'tenant') {
+//       filter.isVerified = true;
+//     }
+
+//     const parsedQuery = qs.parse(req._parsedUrl.query);
+
+//     const features = new APIFeatures(Model.find(filter), parsedQuery)
 //       .filter()
 //       .sort()
 //       .limitFields()
 //       .paginate();
+
 //     const doc = await features.query;
 
-//     // SEND RESPONSE
 //     res.status(200).json({
-//       status: "success",
+//       status: 'success',
 //       results: doc.length,
 //       data: {
 //         data: doc,

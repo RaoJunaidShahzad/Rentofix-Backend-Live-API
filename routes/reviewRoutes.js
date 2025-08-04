@@ -4,11 +4,12 @@ const authController = require('../controllers/authController');
 
 const router = express.Router({ mergeParams: true });
 
+// Public - get all reviews or property-specific reviews
+router.get('/', reviewController.getAllReviews);
+
 // Protect all routes
 router.use(authController.protect);
 
-// Public - get all reviews or property-specific reviews
-router.get('/', reviewController.getAllReviews);
 router.get('/property/:propertyId', reviewController.getReviewsByProperty);
 
 // Private (tenant only) - create, update, delete

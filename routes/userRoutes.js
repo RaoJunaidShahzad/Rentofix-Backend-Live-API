@@ -22,7 +22,7 @@ router.route('/').get(userController.getAllUsers).post(userController.createUser
 router
   .route('/:id')
   .get(userController.getUser)
-  .patch(userController.updateUser)
+  .patch(upload.single('photo'), userController.updateUser) // ✅ fix applied
   .delete(userController.deleteUser);
 
 module.exports = router;
