@@ -11,7 +11,8 @@ const app = require('./app');
 // ========================
 // Database Connection
 // ========================
-const DB_URI = process.env.DATABASE_OFFLINE || process.env.DATABASE_ONLINE;
+const DB_URI = process.env.DATABASE_ONLINE;
+// const DB_URI = process.env.DATABASE_OFFLINE;
 
 mongoose
   .connect(DB_URI)
