@@ -66,7 +66,7 @@ app.use(express.json({ limit: '10kb' })); // Limit body size to 10kb
 app.use(
   '/uploads',
   (req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', 'http://192.168.100.59:3000'); // or '*'
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173'); // or '*'
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); // important!
     next();
   },
