@@ -87,7 +87,9 @@ exports.createBooking = catchAsync(async (req, res, next) => {
 });
 
 exports.getMyBookingsOrRequests = catchAsync(async (req, res, next) => {
-  let populateFields = [{ path: 'propertyId', select: 'title address rentAmount images' }];
+  let populateFields = [
+    { path: 'propertyId', select: 'title address region city rentAmount images' },
+  ];
 
   // Conditionally populate owner or tenant info
   if (req.user.role === 'tenant') {

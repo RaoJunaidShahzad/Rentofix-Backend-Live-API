@@ -1,5 +1,5 @@
 {
-  "name": "rentofix-backend",
+  "name": "rentofix-backend-API",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {

@@ -132,3 +132,19 @@ userSchema.methods.createPasswordResetToken = function () {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
+
+// Virtual populate rent payments
+userSchema.virtual("rentPayments", {
+  ref: "RentPayment",
+  foreignField: "tenantId",
+  localField: "_id",
+});
+
+userSchema.virtual("ownedRentPayments", {
+  ref: "RentPayment",
+  foreignField: "ownerId",
+  localField: "_id",
+});
+
+

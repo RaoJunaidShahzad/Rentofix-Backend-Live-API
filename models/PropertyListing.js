@@ -119,3 +119,13 @@ propertyListingSchema.pre('save', function (next) {
 const PropertyListing = mongoose.model('PropertyListing', propertyListingSchema);
 
 module.exports = PropertyListing;
+
+
+// Virtual populate rent payments
+propertyListingSchema.virtual("rentPayments", {
+  ref: "RentPayment",
+  foreignField: "propertyId",
+  localField: "_id",
+});
+
+

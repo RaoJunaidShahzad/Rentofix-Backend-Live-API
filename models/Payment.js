@@ -74,7 +74,7 @@ paymentSchema.pre(/^find/, function (next) {
     },
     {
       path: 'propertyIds',
-      select: 'title address',
+      select: 'title address region city',
     },
     {
       path: 'planId',
