@@ -25,6 +25,8 @@ const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // 1) GLOBAL MIDDLEWARES
 
 // Enable CORS
