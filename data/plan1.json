@@ -9,22 +9,21 @@
   },
   {
     "name": "Standard",
-    "price": 1500,
-    "durationDays": 90,
+    "price": 2000,
+    "durationDays": 50,
     "maxListings": 5,
     "features": ["Featured Listing", "Priority Support", "Promoted Visibility"],
     "isActive": true
   },
   {
     "name": "Premium",
-    "price": 3000,
-    "durationDays": 180,
+    "price": 5000,
+    "durationDays": 80,
     "maxListings": 10,
     "features": [
       "Top Featured Listing",
       "24/7 Premium Support",
-      "Homepage Highlight",
-      "Ad-Free Dashboard"
+      "Homepage Highlight"
     ],
     "isActive": true
   }

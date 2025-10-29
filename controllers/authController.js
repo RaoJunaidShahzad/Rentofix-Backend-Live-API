@@ -41,42 +41,265 @@ const sendToken = (user, statusCode, res) => {
   });
 };
 
-//////// 1. Signup /////////
-exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-    role: req.body.role || 'tenant', // Default role
-    phoneNumber: req.body.phoneNumber,
-  });
+// //////// 1. Signup /////////
+// exports.signup = catchAsync(async (req, res, next) => {
+//   const newUser = await User.create({
+//     firstName: req.body.firstName,
+//     lastName: req.body.lastName,
+//     email: req.body.email,
+//     password: req.body.password,
+//     passwordConfirm: req.body.passwordConfirm,
+//     role: req.body.role || 'tenant', // Default role
+//     phoneNumber: req.body.phoneNumber,
+//   });
 
-  // Generate and send OTP for email verification
+//   // Generate and send OTP for email verification
+//   const otp = otpGenerator.generateOTP();
+//   newUser.otp = otp;
+//   newUser.otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+//   await newUser.save({ validateBeforeSave: false });
+
+//   try {
+//     await sendEmail(
+//       newUser.email,
+//       'Welcome to Rentofix',
+//       `<p>Your OTP is <strong>${otp}</strong>. It expires in 10 minutes.</p>`
+//     );
+//     res.status(201).json({
+//       status: 'success',
+//       message: 'OTP sent to email! Please verify your account.',
+//       data: {
+//         user: newUser,
+//       },
+//     });
+//   } catch (err) {
+//     newUser.otp = undefined;
+//     newUser.otpExpires = undefined;
+//     await newUser.save({ validateBeforeSave: false });
+//     return next(new AppError('There was an error sending the email. Try again later!', 500));
+//   }
+// });
+
+// //////// 3. VerifyOTP ///////////
+// exports.verifyOTP = catchAsync(async (req, res, next) => {
+//   const { email, otp } = req.body;
+
+//   if (!email || !otp) {
+//     return next(new AppError('Please provide email and OTP!', 400));
+//   }
+
+//   // 1. Find the user and include OTP fields
+//   const user = await User.findOne({ email }).select('+otp +otpExpires');
+
+//   // If no user found
+//   if (!user) {
+//     return next(new AppError('User not found.', 404));
+//   }
+
+//   // OTP invalid or expired
+//   if (!user.correctOtp(otp) || user.otpExpires < Date.now()) {
+//     // ❌ Delete the unverified user
+//     if (!user.isVerified) {
+//       await User.deleteOne({ email });
+//     }
+
+//     return next(new AppError('Invalid or expired OTP. Signup failed, please register again.', 400));
+//   }
+
+//   // 3. Mark user as verified
+//   user.isVerified = true;
+//   user.otp = undefined;
+//   user.otpExpires = undefined;
+//   await user.save({ validateBeforeSave: false });
+//   // 4. Send JWT token back
+//   sendToken(user, 200, res); // you must have sendToken(user, statusCode, res)
+// });
+
+// //////// 4. ResendOTP /////////
+// exports.resendOTP = catchAsync(async (req, res, next) => {
+//   const { email } = req.body;
+
+//   if (!email) {
+//     return next(new AppError('Please provide your email.', 400));
+//   }
+
+//   const user = await User.findOne({ email }).select('+otp +otpExpires');
+
+//   if (!user) {
+//     return next(new AppError('No user found with that email address.', 404));
+//   }
+
+//   // Generate and assign new OTP
+//   const otp = otpGenerator.generateOTP();
+//   user.otp = otp;
+//   user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+//   await user.save({ validateBeforeSave: false });
+
+//   try {
+//     await sendEmail(
+//       user.email,
+//       'Rentofix - Your New OTP',
+//       `
+//         <p>Hello ${user.firstName},</p>
+//         <p>Your new One-Time Password (OTP) is:</p>
+//         <h2>${otp}</h2>
+//         <p>This OTP is valid for the next 10 minutes.</p>
+//         <p>If you didn’t request this, please ignore this email.</p>
+//         <br/>
+//         <p>– Rentofix Team</p>
+//       `
+//     );
+
+//     res.status(200).json({
+//       status: 'success',
+//       message: 'New OTP sent to your email!',
+//     });
+//   } catch (err) {
+//     // Cleanup if sending fails
+//     user.otp = undefined;
+//     user.otpExpires = undefined;
+//     await user.save({ validateBeforeSave: false });
+
+//     return next(new AppError('Failed to send email. Please try again later.', 500));
+//   }
+// });
+
+const otpStore = {};
+
+/**
+ * 1️⃣ Send OTP (does NOT create user yet)
+ */
+exports.sendOTP = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Please provide your email.', 400));
+  }
+
   const otp = otpGenerator.generateOTP();
-  newUser.otp = otp;
-  newUser.otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
-  await newUser.save({ validateBeforeSave: false });
+  otpStore[email] = {
+    otp,
+    expires: Date.now() + 10 * 60 * 1000, // 10 minutes
+  };
 
   try {
     await sendEmail(
-      newUser.email,
-      'Welcome to Rentofix',
-      `<p>Your OTP is <strong>${otp}</strong>. It expires in 10 minutes.</p>`
+      email,
+      'Rentofix - Email Verification',
+      `<p>Your verification OTP is <strong>${otp}</strong>. It expires in 10 minutes.</p>`
     );
-    res.status(201).json({
+
+    res.status(200).json({
       status: 'success',
-      message: 'OTP sent to email! Please verify your account.',
-      data: {
-        user: newUser,
-      },
+      message: 'OTP sent to your email.',
     });
   } catch (err) {
-    newUser.otp = undefined;
-    newUser.otpExpires = undefined;
-    await newUser.save({ validateBeforeSave: false });
-    return next(new AppError('There was an error sending the email. Try again later!', 500));
+    delete otpStore[email];
+    return next(new AppError('Failed to send OTP. Please try again later.', 500));
+  }
+});
+
+/**
+ * 2️⃣ Verify OTP (only validates; does not create user)
+ */
+exports.verifyOTP = catchAsync(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return next(new AppError('Please provide email and OTP.', 400));
+  }
+
+  const stored = otpStore[email];
+
+  if (!stored) {
+    return next(new AppError('No OTP found for this email. Please request again.', 404));
+  }
+
+  if (stored.expires < Date.now()) {
+    delete otpStore[email];
+    return next(new AppError('OTP expired. Please request a new one.', 400));
+  }
+
+  if (stored.otp !== otp) {
+    return next(new AppError('Invalid OTP. Please try again.', 400));
+  }
+
+  // ✅ OTP verified — mark as verified
+  stored.verified = true;
+
+  res.status(200).json({
+    status: 'success',
+    message: 'OTP verified successfully.',
+  });
+});
+
+/**
+ * 3️⃣ Signup (only allowed if OTP verified)
+ */
+exports.signup = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  // Ensure OTP verified before allowing signup
+  const stored = otpStore[email];
+
+  if (!stored || !stored.verified) {
+    return next(new AppError('Please verify your email before signing up.', 400));
+  }
+
+  // Create user
+  const newUser = await User.create({
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email,
+    password: req.body.password,
+    passwordConfirm: req.body.passwordConfirm,
+    role: req.body.role || 'tenant',
+    phoneNumber: req.body.phoneNumber,
+    isVerified: true,
+  });
+
+  // ✅ Cleanup OTP record after signup
+  delete otpStore[email];
+
+  res.status(201).json({
+    status: 'success',
+    message: 'Signup complete! You can now log in.',
+    data: {
+      user: newUser,
+    },
+  });
+});
+
+/**
+ * 4️⃣ Resend OTP
+ */
+exports.resendOTP = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Please provide your email.', 400));
+  }
+
+  const otp = otpGenerator.generateOTP();
+  otpStore[email] = {
+    otp,
+    expires: Date.now() + 10 * 60 * 1000,
+  };
+
+  try {
+    await sendEmail(
+      email,
+      'Rentofix - New OTP Code',
+      `<p>Your new OTP is <strong>${otp}</strong>. It expires in 10 minutes.</p>`
+    );
+
+    res.status(200).json({
+      status: 'success',
+      message: 'New OTP sent successfully.',
+    });
+  } catch (err) {
+    delete otpStore[email];
+    return next(new AppError('Failed to resend OTP.', 500));
   }
 });
 
@@ -96,90 +319,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 3) If everything ok, send token to client
   sendToken(user, 200, res);
-});
-
-//////// 3. VerifyOTP ///////////
-exports.verifyOTP = catchAsync(async (req, res, next) => {
-  const { email, otp } = req.body;
-
-  if (!email || !otp) {
-    return next(new AppError('Please provide email and OTP!', 400));
-  }
-
-  // 1. Find the user and include OTP fields
-  const user = await User.findOne({ email }).select('+otp +otpExpires');
-
-  // If no user found
-  if (!user) {
-    return next(new AppError('User not found.', 404));
-  }
-
-  // OTP invalid or expired
-  if (!user.correctOtp(otp) || user.otpExpires < Date.now()) {
-    // ❌ Delete the unverified user
-    if (!user.isVerified) {
-      await User.deleteOne({ email });
-    }
-
-    return next(new AppError('Invalid or expired OTP. Signup failed, please register again.', 400));
-  }
-
-  // 3. Mark user as verified
-  user.isVerified = true;
-  user.otp = undefined;
-  user.otpExpires = undefined;
-  await user.save({ validateBeforeSave: false });
-  // 4. Send JWT token back
-  sendToken(user, 200, res); // you must have sendToken(user, statusCode, res)
-});
-
-//////// 4. ResendOTP /////////
-exports.resendOTP = catchAsync(async (req, res, next) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return next(new AppError('Please provide your email.', 400));
-  }
-
-  const user = await User.findOne({ email }).select('+otp +otpExpires');
-
-  if (!user) {
-    return next(new AppError('No user found with that email address.', 404));
-  }
-
-  // Generate and assign new OTP
-  const otp = otpGenerator.generateOTP();
-  user.otp = otp;
-  user.otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-  await user.save({ validateBeforeSave: false });
-
-  try {
-    await sendEmail(
-      user.email,
-      'Rentofix - Your New OTP',
-      `
-        <p>Hello ${user.firstName},</p>
-        <p>Your new One-Time Password (OTP) is:</p>
-        <h2>${otp}</h2>
-        <p>This OTP is valid for the next 10 minutes.</p>
-        <p>If you didn’t request this, please ignore this email.</p>
-        <br/>
-        <p>– Rentofix Team</p>
-      `
-    );
-
-    res.status(200).json({
-      status: 'success',
-      message: 'New OTP sent to your email!',
-    });
-  } catch (err) {
-    // Cleanup if sending fails
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-
-    return next(new AppError('Failed to send email. Please try again later.', 500));
-  }
 });
 
 //////// 5. ForgotPassword /////////
