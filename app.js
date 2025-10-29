@@ -26,7 +26,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const app = express();
 
 /* ✅ FIX: Enable proxy trust before *anything else* */
-app.set('trust proxy', true);
+// app.set('trust proxy', true);
+app.set('trust proxy', 'loopback');
 
 /* ✅ CORS setup */
 app.use(
